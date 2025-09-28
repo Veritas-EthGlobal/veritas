@@ -1,0 +1,6 @@
+*/__pycache__/
+*.pyc
+/node_modules
+socket_server/node_modules
+frntend/node_modules
+frntend/.next
