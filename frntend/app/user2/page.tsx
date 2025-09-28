@@ -1,3 +1,4 @@
+
 "use client"
 import * as React from "react";
 import JSZip from 'jszip'; // <--- 1. Import JSZip
@@ -8,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { FullScreenLoader } from "@/components/layout/FullScreenLoader";
-import { CheckCircle2, FileCode } from "lucide-react";
+import { CodeViewer } from "@/components/CodeViewer"; 
+import { CheckCircle2, FileCode, Loader2 } from "lucide-react";
 
 interface BackendHighlightData {
   fileName: string;
@@ -116,7 +118,7 @@ export default function User2Page() {
       
       // --- DUMMY API CALL TO GET ANALYSIS RESULT ---
       console.log("Making API call ...");
-      const res = await fetch("http://100.86.219.107:7999/analyze-zip/", {method:"POST", body: fd, headers: {
+      const res = await fetch("http://100.86.219.107:7995/analyze-zip/", {method:"POST", body: fd, headers: {
       // Add this header to skip the Ngrok browser warning
       // "ngrok-skip-browser-warning": "true" 
     }});
@@ -187,7 +189,26 @@ if (data.boundaries_json && Array.isArray(data.boundaries_json)) {
       description="Enter the Match ID, submit your codebase, and await the duel."
     >
       {/* This loader will now appear on top of the UI, keeping the code visible behind it */}
-      <FullScreenLoader direction="rtl" active={isUploading} checkpointsReached={checkpoints}/>
+      {isUploading ? (
+        // --- NEW Loading Screen ---
+        <div className="flex items-center justify-center w-full h-[540px]">
+          <Card className="w-full max-w-md bg-white/5 border-white/10 animate-pulse text-center p-8">
+            <CardHeader>
+              <div className="flex justify-center mb-4">
+                <Loader2 className="w-12 h-12 text-purple-400 animate-spin" />
+              </div>
+              <CardTitle className="text-2xl">
+                Analyzing Your Code...
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-400">
+                This may take a moment. We're generating fingerprints and preparing the analysis.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
       
       <div className="flex w-full gap-6">
         {/* --- Code Viewer (Left Side) --- */}
@@ -212,9 +233,10 @@ if (data.boundaries_json && Array.isArray(data.boundaries_json)) {
               </CardHeader>
               <CardContent>
                 {activeFile && (
-                  <pre className="text-sm text-gray-200 bg-gray-900/50 p-4 rounded-md max-h-[450px] overflow-auto">
-                    <code>{activeFile.content}</code>
-                  </pre>
+                  <CodeViewer
+                    content={activeFile.content}
+                    linesToHighlight={highlightedLines[activeFile.name] || []}
+                  />
                 )}
               </CardContent>
             </Card>
@@ -273,7 +295,7 @@ if (data.boundaries_json && Array.isArray(data.boundaries_json)) {
             </div>
           )}
         </div>
-      </div>
+      </div>)}
     </PageLayout>
   );
 }
